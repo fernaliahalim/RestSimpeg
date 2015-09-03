@@ -1,0 +1,15 @@
+package api.simpeg.dao;
+
+import java.util.List;
+
+import api.simpeg.model.Absensi_mobile;
+
+public interface AbsensiMobileDAO{
+	
+	public int hadir(String id_pegawai, String long_lat, String api_key);
+	
+	public int tidak_hadir(String id_pegawai, String status, String api_key);
+	
+	public List<Absensi_mobile> get_attendance(String id_pegawai, String api_key);
+	
+}

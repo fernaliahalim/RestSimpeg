@@ -1,0 +1,61 @@
+package api.simpeg.model;
+
+public class Absensi_mobile{
+	private int id;
+	private int id_pegawai;
+	private String date_time;
+	private String status;
+	private String long_lat;
+	
+	//atribut for error handling
+	private int request_status=100;
+	
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public int getId_pegawai() {
+		return id_pegawai;
+	}
+	public void setId_pegawai(int id_pegawai) {
+		this.id_pegawai = id_pegawai;
+	}
+	public String getDate_time() {
+		return date_time;
+	}
+	public void setDate_time(String date_time) {
+		this.date_time = date_time;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public String getLong_lat() {
+		return long_lat;
+	}
+	public void setLong_lat(String long_lat) {
+		this.long_lat = long_lat;
+	}
+	
+	
+	//method for error handling
+	public int getRequest_status() {
+		return request_status;
+	}
+	public void setRequest_status(int request_status) {
+		this.request_status = request_status;
+	}
+	
+	@Override
+	public String toString(){
+		return "{id=" + id + ", id_pegawai=" + id_pegawai + ", date_time =" + date_time + ", status=" + status + ", long_lat=" + long_lat + ", request_status=" + request_status + "}";
+	}
+	
+	public String ReqtoString(){
+		return "[{\"request_status\":" + request_status + "}]";
+	}
+}

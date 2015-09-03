@@ -1,0 +1,168 @@
+package api.simpeg.dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import api.simpeg.model.Pegawai;
+
+@Repository
+public class PegawaiDAOImpl implements PegawaiDAO{
+	private DataSource dataSource;
+	
+	private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+	}
+	
+	@Override
+	public List<Pegawai> find_all(){
+		String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja";
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			con = dataSource.getConnection();
+			ps = con.prepareStatement(query);
+			rs = ps.executeQuery();
+			while(rs.next()){
+				Pegawai pegawai = new Pegawai();
+				pegawai.setId(rs.getInt("id_pegawai"));
+				pegawai.setNama(rs.getString("nama"));
+				pegawai.setNip(rs.getString("nip_baru"));
+				pegawai.setUnit_kerja(rs.getString("nama_baru"));
+				pegawai.setJabatan(rs.getString("jabatan"));
+				pgwList.add(pegawai);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				rs.close();
+				ps.close();
+				con.close();
+			} catch (SQLException e2) {
+				e2.printStackTrace();
+			}
+		}
+		return pgwList;
+	}
+	
+	@Override
+	public List<Pegawai> find_by_nama(String nama){
+		String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nama='"+nama+"'";
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			con = dataSource.getConnection();
+			ps = con.prepareStatement(query);
+			rs = ps.executeQuery();
+			while(rs.next()){
+				Pegawai pegawai = new Pegawai();
+				pegawai.setId(rs.getInt("id_pegawai"));
+				pegawai.setNama(rs.getString("nama"));
+				pegawai.setNip(rs.getString("nip_baru"));
+				pegawai.setUnit_kerja(rs.getString("nama_baru"));
+				pegawai.setJabatan(rs.getString("jabatan"));
+				pgwList.add(pegawai);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				rs.close();
+				ps.close();
+				con.close();
+			} catch (SQLException e2) {
+				e2.printStackTrace();
+			}
+		}
+		return pgwList;
+	}
+	
+	@Override
+	public List<Pegawai> find_by_nip(String nip){
+		String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nip_baru='"+nip+"'";
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			con = dataSource.getConnection();
+			ps = con.prepareStatement(query);
+			rs = ps.executeQuery();
+			while(rs.next()){
+				Pegawai pegawai = new Pegawai();
+				pegawai.setId(rs.getInt("id_pegawai"));
+				pegawai.setNama(rs.getString("nama"));
+				pegawai.setNip(rs.getString("nip_baru"));
+				pegawai.setUnit_kerja(rs.getString("nama_baru"));
+				pegawai.setJabatan(rs.getString("jabatan"));
+				pgwList.add(pegawai);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				rs.close();
+				ps.close();
+				con.close();
+			} catch (SQLException e2) {
+				e2.printStackTrace();
+			}
+		}
+		return pgwList;
+	}
+	
+	@Override
+	public List<Pegawai> find_by_unit_kerja(String unit_kerja){
+		String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nama_baru='"+unit_kerja+"'";
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			con = dataSource.getConnection();
+			ps = con.prepareStatement(query);
+			rs = ps.executeQuery();
+			while(rs.next()){
+				Pegawai pegawai = new Pegawai();
+				pegawai.setId(rs.getInt("id_pegawai"));
+				pegawai.setNama(rs.getString("nama"));
+				pegawai.setNip(rs.getString("nip_baru"));
+				pegawai.setUnit_kerja(rs.getString("nama_baru"));
+				pegawai.setJabatan(rs.getString("jabatan"));
+				pgwList.add(pegawai);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				rs.close();
+				ps.close();
+				con.close();
+			} catch (SQLException e2) {
+				e2.printStackTrace();
+			}
+		}
+		return pgwList;
+	}
+}

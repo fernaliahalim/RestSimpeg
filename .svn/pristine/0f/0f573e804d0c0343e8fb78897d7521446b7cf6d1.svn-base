@@ -1,0 +1,107 @@
+package api.simpeg.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import api.simpeg.model.Post;
+import api.simpeg.simpeg_api.dao.ApiAksesDAO;
+import api.simpeg.simpeg_api.dao.AplikasiAPIDAO;
+import api.simpeg.simpeg_api.dao.LogAPIDAO;
+import api.simpeg.simpeg_api.dao.MethodAPIDAO;
+import api.simpeg.simpeg_api.model.Aplikasi_api;
+
+public class PostDAOJDBCTemplateImpl implements PostDAO{
+	private DataSource dataSource;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+	}
+	
+	@Override
+	public int komentar(String parent_id){
+		//String query = "SELECT  count(parent_id) as jumlah_komentar from post where parent_id =" + parent_id;
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		int jml = 0;
+		
+		List<Map<String, Object>> komentarRows = jdbcTemplate.queryForList("SELECT  count(parent_id) as jumlah_komentar from post where parent_id =?", parent_id);
+		
+		for (Map<String, Object> komentarRow : komentarRows){
+			jml = Integer.parseInt(String.valueOf(komentarRow.get("jumlah_komentar")));
+		}
+		return jml;
+	}
+	
+	@Override 
+	public List<Post> get_timeline(String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        ApiAksesDAO apiDAO = ctx.getBean("apiAksesDAO", ApiAksesDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		int id_app = 0;
+		String nama_method = "post/get_timeline";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		id_app = apiDAO.get_status(id_aplikasi, id_method);
+		
+		//atribut untuk menampilkan data post
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		List<Post> postList = new ArrayList<Post>();
+		String parent_id = "";
+		Post post_error = new Post();
+		
+		if(id_app>0){
+			if(api_key.equals(api_keydb)){
+				//menambahkan data log_api
+				logDAO.tambah(id_aplikasi, id_method);
+				
+				//String query = "SELECT 	post.id_post as ID_POST, post.msg as MSG, post.id_pegawai as ID_PEGAWAI, pegawai.nama as NAMA, pegawai.gelar_belakang as GELAR, post.kapan as KAPAN, post.parent_id as PARENT_ID FROM post, pegawai WHERE post.id_pegawai = pegawai.id_pegawai ORDER BY post.id_post DESC LIMIT 0,100";
+				
+				List<Map<String, Object>> postRows = jdbcTemplate.queryForList("SELECT 	post.id_post as ID_POST, post.msg as MSG, post.id_pegawai as ID_PEGAWAI, pegawai.nama as NAMA, pegawai.gelar_belakang as GELAR, post.kapan as KAPAN, post.parent_id as PARENT_ID FROM post, pegawai WHERE post.id_pegawai = pegawai.id_pegawai ORDER BY post.id_post DESC LIMIT 0,100");
+				
+				for (Map<String, Object> postRow : postRows){
+					Post post = new Post();
+					post.setId_post(Integer.parseInt(String.valueOf(postRow.get("ID_POST"))));
+					post.setMsg(String.valueOf(postRow.get("MSG")));
+					post.setId_pegawai(Integer.parseInt(String.valueOf(postRow.get("ID_PEGAWAI"))));
+					post.setNama(String.valueOf(postRow.get("NAMA")));
+					post.setGelar_belakang(String.valueOf(postRow.get("GELAR")));
+					post.setKapan(String.valueOf(postRow.get("KAPAN")));
+					post.setParent_id(String.valueOf(postRow.get("PARENT_ID")));
+					parent_id = String.valueOf(postRow.get("PARENT_ID"));
+					post.setJml_komentar(komentar(parent_id));
+					postList.add(post);
+				}
+			}
+			else{
+				post_error.setError("API KEY yang Anda masukkan tidak sesuai");
+				postList.add(post_error);
+			}
+		}
+		else{
+			post_error.setError("Method yang Anda panggil tidak diizinkan untuk aplikasi ini");
+			postList.add(post_error);
+		}
+		return postList;
+	}
+}

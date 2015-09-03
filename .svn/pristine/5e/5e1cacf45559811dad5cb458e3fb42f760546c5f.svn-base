@@ -1,0 +1,42 @@
+package api.simpeg;
+
+
+import java.util.List;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import api.simpeg.dao.AbsensiDAO;
+import api.simpeg.dao.PegawaiDAO;
+import api.simpeg.model.Absensi;
+import api.simpeg.model.Pegawai;
+
+@SpringBootApplication
+@ComponentScan
+@EnableAutoConfiguration
+public class Application {
+
+    public static void main(String[] args) {
+    	SpringApplication.run(Application.class, args);
+        
+    	//ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        //PegawaiDAO pegawaiDAO = ctx.getBean("pegawaiDAO", PegawaiDAO.class);
+        
+        //ClassPathXmlApplicationContext ctx2 = new ClassPathXmlApplicationContext("spring.xml");
+        //AbsensiDAO absensiDAO = ctx2.getBean("absensiDAO", AbsensiDAO.class);
+        
+        //List<Pegawai> pgwList = pegawaiDAO.find_by_unit_kerja("RSUD Kota Bogor");
+        //System.out.println(pgwList);
+        
+        //List<Absensi> absList = absensiDAO.get_hadir("Badan Kepegawaian Pendidikan dan Pelatihan");
+        //System.out.println(absList);
+        
+        //Pegawai pgwList = pegawaiDAO.find_by_nip("198506182010011007");
+        //System.out.println(pgwList);
+        
+        //ctx.close();
+    }
+}

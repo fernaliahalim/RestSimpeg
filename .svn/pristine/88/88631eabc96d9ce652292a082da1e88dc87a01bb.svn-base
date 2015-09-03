@@ -1,0 +1,48 @@
+package api.simpeg.controllers;
+
+import java.util.List;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import api.simpeg.dao.AbsensiMobileDAO;
+import api.simpeg.model.Absensi_mobile;
+
+@RestController
+public class AbsensiMobileRestController{
+	
+	@RequestMapping(value="/absensi_mobile/hadir", method=RequestMethod.POST)
+	@ResponseBody
+	int absensi_mobile_hadir(@RequestParam(value="id_pegawai") String id_pegawai, @RequestParam(value="long_lat") String long_lat, @RequestParam(value="api_key") String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        AbsensiMobileDAO absmDAO = ctx.getBean("absensiMobileDAO", AbsensiMobileDAO.class);
+       // Double long_latrequired = Double.parseDouble(long_lat);
+        int stts = absmDAO.hadir(id_pegawai, long_lat, api_key);
+        
+        return stts;
+	}
+	
+	@RequestMapping(value="/absensi_mobile/tidak_hadir", method=RequestMethod.POST)
+	@ResponseBody
+	int absensi_mobile_tidak_hadir(@RequestParam(value="id_pegawai") String id_pegawai, @RequestParam(value="status") String status, @RequestParam(value="api_key") String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        AbsensiMobileDAO absmDAO = ctx.getBean("absensiMobileDAO", AbsensiMobileDAO.class);
+        int stts = absmDAO.tidak_hadir(id_pegawai, status, api_key);
+        
+        return stts;
+	}
+	
+	@RequestMapping(value="absensi_mobile/get_attendance", method=RequestMethod.POST)
+	@ResponseBody
+	List<Absensi_mobile> absesnsi_mobile_get_attendance(@RequestParam(value="id_pegawai") String id_pegawai, @RequestParam(value="api_key") String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        AbsensiMobileDAO absmDAO = ctx.getBean("absensiMobileDAO", AbsensiMobileDAO.class);
+        List<Absensi_mobile> absList = absmDAO.get_attendance(id_pegawai, api_key);
+        
+        return absList;
+	}
+}

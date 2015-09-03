@@ -1,0 +1,12 @@
+package api.simpeg.dao;
+
+import java.util.List;
+
+import api.simpeg.model.Unit_kerja;
+
+public interface UnitKerjaDAO{
+	
+	public List<Unit_kerja> get_all(String api_key);
+	
+	public Unit_kerja get_by_unit_kerja(String unit_kerja, String api_key);
+}

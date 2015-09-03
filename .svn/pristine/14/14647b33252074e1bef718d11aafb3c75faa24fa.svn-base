@@ -1,0 +1,242 @@
+package api.simpeg.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import api.simpeg.model.Pegawai;
+import api.simpeg.simpeg_api.dao.ApiAksesDAO;
+import api.simpeg.simpeg_api.dao.AplikasiAPIDAO;
+import api.simpeg.simpeg_api.dao.LogAPIDAO;
+import api.simpeg.simpeg_api.dao.MethodAPIDAO;
+import api.simpeg.simpeg_api.model.Api_akses;
+import api.simpeg.simpeg_api.model.Aplikasi_api;
+
+@Repository
+public class PegawaiDAOJDBCTemplateImpl implements PegawaiDAO{
+	private DataSource dataSource;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+	}
+	
+	@Override
+	public List<Pegawai> find_all(String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        ApiAksesDAO apiDAO = ctx.getBean("apiAksesDAO", ApiAksesDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		int id_app;
+		String nama_method = "pegawai/find_all";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		Api_akses app_akses = new Api_akses();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		app_akses = apiDAO.get_by_method(id_method);
+		id_app = app_akses.getId_aplikasi();
+		
+		//atribut untuk menampilkan data pegawai
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		
+		if(id_app == id_aplikasi){
+			if(api_key.equals(api_keydb)){
+				//menambahkan data log_api
+				logDAO.tambah(id_aplikasi, id_method);
+				
+				//String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, p.flag_pensiun, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE p.flag_pensiun=0";
+				List<Map<String, Object>> pgwRows = jdbcTemplate.queryForList("SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, p.flag_pensiun, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE p.flag_pensiun=0");
+				
+				for (Map<String, Object> pgwRow : pgwRows){
+					Pegawai pgw = new Pegawai();
+					pgw.setId(Integer.parseInt(String.valueOf(pgwRow.get("id_pegawai"))));
+					pgw.setNama(String.valueOf(pgwRow.get("nama")));
+					pgw.setNip(String.valueOf(pgwRow.get("nip_baru")));
+					pgw.setUnit_kerja(String.valueOf(pgwRow.get("nama_baru")));
+					pgw.setJabatan(String.valueOf(pgwRow.get("jabatan")));
+					pgwList.add(pgw);
+				}
+			}
+		}
+		return pgwList;
+	}
+	
+	@Override
+	public List<Pegawai> find_by_nama(String nama, String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        ApiAksesDAO apiDAO = ctx.getBean("apiAksesDAO", ApiAksesDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		int id_app;
+		String nama_method = "pegawai/find_by_nama";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		Api_akses app_akses = new Api_akses();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		app_akses = apiDAO.get_by_method(id_method);
+		id_app = app_akses.getId_aplikasi();
+		
+		//atribut untuk menampilkan data pegawai
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		
+		if(id_app == id_aplikasi){
+			if(api_key.equals(api_keydb)){
+				//menambahkan data log_api
+				logDAO.tambah(id_aplikasi, id_method);
+				
+				//String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, p.flag_pensiun, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nama like'"+nama+"%' AND p.flag_pensiun=0";
+				
+				List<Map<String, Object>> pgwRows = jdbcTemplate.queryForList("SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, p.flag_pensiun, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nama like ? AND p.flag_pensiun=0", nama + "%");
+				
+				for (Map<String, Object> pgwRow : pgwRows){
+					Pegawai pgw = new Pegawai();
+					pgw.setId(Integer.parseInt(String.valueOf(pgwRow.get("id_pegawai"))));
+					pgw.setNama(String.valueOf(pgwRow.get("nama")));
+					pgw.setNip(String.valueOf(pgwRow.get("nip_baru")));
+					pgw.setUnit_kerja(String.valueOf(pgwRow.get("nama_baru")));
+					pgw.setJabatan(String.valueOf(pgwRow.get("jabatan")));
+					pgwList.add(pgw);
+				}
+			}
+		}
+		return pgwList;
+	}
+	
+	@Override
+	public List<Pegawai> find_by_nip(String nip, String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        ApiAksesDAO apiDAO = ctx.getBean("apiAksesDAO", ApiAksesDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		int id_app;
+		String nama_method = "pegawai/find_by_nip";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		Api_akses app_akses = new Api_akses();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		app_akses = apiDAO.get_by_method(id_method);
+		id_app = app_akses.getId_aplikasi();
+		
+		//atribut untuk menampilkan data pegawai
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		
+		if(id_app == id_aplikasi){
+			if(api_key.equals(api_keydb)){
+				//menambahkan data log_api
+				logDAO.tambah(id_aplikasi, id_method);
+			
+				//String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, p.flag_pensiun, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nip_baru='"+nip+"' AND p.flag_pensiun=0";
+				
+				List<Map<String, Object>> pgwRows = jdbcTemplate.queryForList("SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, p.flag_pensiun, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nip_baru=? AND p.flag_pensiun=0", nip);
+				
+				for (Map<String, Object> pgwRow : pgwRows){
+					Pegawai pgw = new Pegawai();
+					pgw.setId(Integer.parseInt(String.valueOf(pgwRow.get("id_pegawai"))));
+					pgw.setNama(String.valueOf(pgwRow.get("nama")));
+					pgw.setNip(String.valueOf(pgwRow.get("nip_baru")));
+					pgw.setUnit_kerja(String.valueOf(pgwRow.get("nama_baru")));
+					pgw.setJabatan(String.valueOf(pgwRow.get("jabatan")));
+					pgwList.add(pgw);
+				}
+			}
+		}
+		return pgwList;
+	}
+	
+	@Override
+	public List<Pegawai> find_by_unit_kerja(String unit_kerja, String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        ApiAksesDAO apiDAO = ctx.getBean("apiAksesDAO", ApiAksesDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		int id_app;
+		String nama_method = "pegawai/find_by_unit_kerja";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		Api_akses app_akses = new Api_akses();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		app_akses = apiDAO.get_by_method(id_method);
+		id_app = app_akses.getId_aplikasi();
+		
+		//atribut untuk menampilkan data pegawai
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		
+		if(id_app == id_aplikasi){
+			if(api_key.equals(api_keydb)){
+				//menambahkan data log_api
+				logDAO.tambah(id_aplikasi, id_method);
+			
+				//String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, p.flag_pensiun, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nama_baru like '"+unit_kerja+"%' AND p.flag_pensiun=0";
+				
+				List<Map<String, Object>> pgwRows = jdbcTemplate.queryForList("SELECT p.id_pegawai, p.nama, p.nip_baru, p.jabatan, p.flag_pensiun, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nama_baru like ? AND p.flag_pensiun=0", unit_kerja + "%");
+				
+				for (Map<String, Object> pgwRow : pgwRows){
+					Pegawai pgw = new Pegawai();
+					pgw.setId(Integer.parseInt(String.valueOf(pgwRow.get("id_pegawai"))));
+					pgw.setNama(String.valueOf(pgwRow.get("nama")));
+					pgw.setNip(String.valueOf(pgwRow.get("nip_baru")));
+					pgw.setUnit_kerja(String.valueOf(pgwRow.get("nama_baru")));
+					pgw.setJabatan(String.valueOf(pgwRow.get("jabatan")));
+					pgwList.add(pgw);
+				}
+			}
+		}
+		return pgwList;
+	}
+}

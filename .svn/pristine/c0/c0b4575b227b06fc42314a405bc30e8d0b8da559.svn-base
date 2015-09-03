@@ -1,0 +1,37 @@
+package api.simpeg.controllers;
+
+import java.util.List;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import api.simpeg.dao.KgbDAO;
+import api.simpeg.model.Kgb;
+
+@RestController
+public class KgbRestController{
+	
+	@RequestMapping("/kgb/get_all")
+	@ResponseBody
+	List<Kgb> kgb_get_all(@RequestParam(value="tahun") String tahun, @RequestParam(value="bulan") String bulan, @RequestParam(value="api_key") String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        KgbDAO kgbDAO = ctx.getBean("kgbDAO", KgbDAO.class);
+        List<Kgb> kgbList = kgbDAO.get_all(tahun, bulan, api_key);
+        
+        return kgbList;
+	}
+	
+	@RequestMapping("/kgb/get_by_unit_kerja")
+	@ResponseBody
+	List<Kgb> kgb_get_by_unit_kerja(@RequestParam(value="unit_kerja") String unit_kerja, @RequestParam(value="tahun") String tahun, @RequestParam(value="bulan") String bulan, @RequestParam(value="api_key") String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        KgbDAO kgbDAO = ctx.getBean("kgbDAO", KgbDAO.class);
+        List<Kgb> kgbList = kgbDAO.get_by_unit_kerja(unit_kerja, tahun, bulan, api_key);
+        
+        return kgbList;
+	}
+}

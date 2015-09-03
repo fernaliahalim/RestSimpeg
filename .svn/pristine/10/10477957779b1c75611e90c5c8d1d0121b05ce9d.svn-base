@@ -1,0 +1,73 @@
+package api.simpeg.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import api.simpeg.model.Absensi;
+import api.simpeg.model.Unit_kerja;
+import api.simpeg.simpeg_api.dao.AplikasiAPIDAO;
+import api.simpeg.simpeg_api.dao.LogAPIDAO;
+import api.simpeg.simpeg_api.dao.MethodAPIDAO;
+import api.simpeg.simpeg_api.model.Aplikasi_api;
+
+public class UnitKerjaDAOJDBCTemplateImpl implements UnitKerjaDAO{
+private DataSource dataSaource;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSaource = dataSource;
+	}
+	
+	@Override
+	public List<Unit_kerja> get_all(String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		String nama_method = "unit_kerja/get_all()";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		//atribut untuk menampilkan data pegawai
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSaource);
+		List<Unit_kerja> ukList = new ArrayList<Unit_kerja>();
+		
+		if(api_key.equals(api_keydb)){
+			//menambahkan data log_api
+			logDAO.tambah(id_aplikasi, id_method);
+		
+			String query = "SELECT * FROM unit_kerja WHERE tahun=SUBSTR(CURDATE(),1,4)";
+			
+			List<Map<String, Object>> ukRows = jdbcTemplate.queryForList(query);
+			
+			for (Map<String, Object> ukRow : ukRows){
+				Unit_kerja unit_kerja = new Unit_kerja();
+				unit_kerja.setId_unit_kerja(Integer.parseInt(String.valueOf(ukRow.get("id_unit_kerja"))));
+				unit_kerja.setNama_baru(String.valueOf(ukRow.get("nama_baru")));
+				unit_kerja.setAlamat(String.valueOf(ukRow.get("alamat")));
+				unit_kerja.setTelp(String.valueOf(ukRow.get("telp")));
+				unit_kerja.setId_skpd(Integer.parseInt(String.valueOf(ukRow.get("id_skpd"))));
+				ukList.add(unit_kerja);
+			}
+		}
+		return ukList;
+	}
+}

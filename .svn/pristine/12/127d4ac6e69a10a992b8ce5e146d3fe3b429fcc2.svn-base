@@ -1,0 +1,155 @@
+package api.simpeg.dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import api.simpeg.model.Absensi;
+
+@Repository
+public class AbsensiDAOImpl implements AbsensiDAO{
+private DataSource dataSource;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+	}
+	
+	//not yet
+	@Override
+	public List<Absensi> get_hadir(String unit_kerja, String tgl){
+		String query = "select u.nama_baru, o.id, count(o.status) as jumlah from ((unit_kerja as u INNER JOIN current_lokasi_kerja as c on u.id_unit_kerja = c.id_unit_kerja) inner join oasys_attendance_log as o on o.id_pegawai=c.id_pegawai ) where o.status='PRESENT' AND o.date_time like '"+tgl+"%' AND u.nama_baru='"+unit_kerja +"' GROUP BY (u.nama_baru)";
+		List<Absensi> absList = new ArrayList<Absensi>();
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			con = dataSource.getConnection();
+			ps = con.prepareStatement(query);
+			rs = ps.executeQuery();
+			while(rs.next()){
+				Absensi absensi = new Absensi();
+				absensi.setId(rs.getInt("id"));
+				absensi.setJumlah(rs.getInt("jumlah"));
+				absensi.setUnit_kerja(rs.getString("nama_baru"));
+				absList.add(absensi);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				rs.close();
+				ps.close();
+				con.close();
+			} catch (SQLException e2) {
+				e2.printStackTrace();
+			}
+		}
+		return absList;
+	}
+	
+	//not yet
+		@Override
+		public List<Absensi> get_sakit(String unit_kerja, String tgl){
+			String query = "select u.nama_baru, o.id, count(o.status) as jumlah from ((unit_kerja as u INNER JOIN current_lokasi_kerja as c on u.id_unit_kerja = c.id_unit_kerja) inner join oasys_absent_reason_log as o on o.id_pegawai=c.id_pegawai ) where o.status='SICK' AND o.date_time like '"+ tgl +"%' AND u.nama_baru='"+unit_kerja +"' GROUP BY (u.nama_baru)";
+			List<Absensi> absList = new ArrayList<Absensi>();
+			Connection con = null;
+			PreparedStatement ps = null;
+			ResultSet rs = null;
+			
+			try {
+				con = dataSource.getConnection();
+				ps = con.prepareStatement(query);
+				rs = ps.executeQuery();
+				while(rs.next()){
+					Absensi absensi = new Absensi();
+					
+					absList.add(absensi);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}finally{
+				try {
+					rs.close();
+					ps.close();
+					con.close();
+				} catch (SQLException e2) {
+					e2.printStackTrace();
+				}
+			}
+			return absList;
+		}
+		
+		//not yet
+		@Override
+		public List<Absensi> get_ijin(String unit_kerja, String tgl){
+			String query = "select u.nama_baru, o.id, count(o.status) as jumlah from ((unit_kerja as u INNER JOIN current_lokasi_kerja as c on u.id_unit_kerja = c.id_unit_kerja) inner join oasys_absent_reason_log as o on o.id_pegawai=c.id_pegawai ) where o.status='EXCUSED' AND o.date_time like '"+ tgl +"%' AND u.nama_baru='"+unit_kerja +"' GROUP BY (u.nama_baru)";
+			List<Absensi> absList = new ArrayList<Absensi>();
+			Connection con = null;
+			PreparedStatement ps = null;
+			ResultSet rs = null;
+			
+			try {
+				con = dataSource.getConnection();
+				ps = con.prepareStatement(query);
+				rs = ps.executeQuery();
+				while(rs.next()){
+					Absensi absensi = new Absensi();
+					
+					absList.add(absensi);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}finally{
+				try {
+					rs.close();
+					ps.close();
+					con.close();
+				} catch (SQLException e2) {
+					e2.printStackTrace();
+				}
+			}
+			return absList;
+		}
+		
+		//not yet
+		@Override
+		public List<Absensi> get_alpha(String unit_kerja, String tgl){
+			String query = "select u.nama_baru, o.id, count(o.status) as jumlah from ((unit_kerja as u INNER JOIN current_lokasi_kerja as c on u.id_unit_kerja = c.id_unit_kerja) inner join oasys_absent_reason_log as o on o.id_pegawai=c.id_pegawai ) where o.status='ABSENT' AND o.date_time like '"+ tgl +"%' AND u.nama_baru='"+unit_kerja +"' GROUP BY (u.nama_baru)";
+			List<Absensi> absList = new ArrayList<Absensi>();
+			Connection con = null;
+			PreparedStatement ps = null;
+			ResultSet rs = null;
+			
+			try {
+				con = dataSource.getConnection();
+				ps = con.prepareStatement(query);
+				rs = ps.executeQuery();
+				while(rs.next()){
+					Absensi absensi = new Absensi();
+					
+					absList.add(absensi);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}finally{
+				try {
+					rs.close();
+					ps.close();
+					con.close();
+				} catch (SQLException e2) {
+					e2.printStackTrace();
+				}
+			}
+			return absList;
+		}
+}

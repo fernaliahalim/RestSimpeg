@@ -1,0 +1,36 @@
+package api.simpeg.controllers;
+
+import java.util.List;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import api.simpeg.dao.UnitKerjaDAO;
+import api.simpeg.model.Unit_kerja;
+
+
+@RestController
+public class UnitKerjaRestController{
+	
+	@RequestMapping("/unit_kerja/get_all")
+	@ResponseBody
+	List<Unit_kerja> uk_get_all(@RequestParam(value="api_key") String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        UnitKerjaDAO ukDAO = ctx.getBean("unitKerjaDAO", UnitKerjaDAO.class);
+    	List<Unit_kerja> ukList = ukDAO.get_all(api_key);
+    	return ukList;
+	}
+	
+	@RequestMapping("/unit_kerja/get_by_unit_kerja")
+	@ResponseBody
+	Unit_kerja uk_get_by_unit_kerja(@RequestParam(value="unit_kerja") String unit_kerja, @RequestParam(value="api_key") String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        UnitKerjaDAO ukDAO = ctx.getBean("unitKerjaDAO", UnitKerjaDAO.class);
+        Unit_kerja uk = ukDAO.get_by_unit_kerja(unit_kerja, api_key);
+        return uk;
+	}
+}

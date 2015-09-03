@@ -1,0 +1,7 @@
+package api.simpeg.dao;
+
+public interface AbsensiMobileDAO{
+	
+	public int tambah(String id_pegawai, String Status, String long_lat, String api_key);
+	
+}

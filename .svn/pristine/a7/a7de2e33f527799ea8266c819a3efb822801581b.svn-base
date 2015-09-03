@@ -1,0 +1,16 @@
+package api.simpeg.dao;
+
+import java.util.List;
+
+import api.simpeg.model.Pegawai;
+
+public interface PegawaiDAO{
+	
+	public List<Pegawai> find_all();
+	
+	public List<Pegawai> find_by_nama(String nama);
+	
+	public List<Pegawai> find_by_nip(String nip);
+	
+	public List<Pegawai> find_by_unit_kerja(String unit_kerja);
+}

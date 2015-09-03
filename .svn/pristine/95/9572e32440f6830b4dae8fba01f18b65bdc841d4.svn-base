@@ -1,0 +1,80 @@
+package api.simpeg.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import api.simpeg.model.Pegawai_mobile;
+
+public class PegawaiMobileDAOJDBCTemplateImpl implements PegawaiMobileDAO{
+	private DataSource dataSource;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+	}
+	
+	@Override
+	public List<Pegawai_mobile> login(String nip, String password, String imei){
+		String query = "SELECT p.id_pegawai, p.nama, p.gelar_depan, p.gelar_belakang, p.jenis_kelamin, p.gol_darah, p.agama, p.tempat_lahir, p.tgl_lahir, p.alamat, p.nip_baru, p.no_karpeg, p.masa_kerja_pasif, p.pangkat_gol, p.jenjab, p.jabatan, p.eselonering, p.tgl_pensiun_dini_old, p.tgl_pensiun_dini, p.imei, p.flag_pensiun, p.password, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE p.flag_pensiun=0 AND p.nip_baru=" + nip;
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		List<Pegawai_mobile> pmList = new ArrayList<Pegawai_mobile>();
+		String jenkel = null;
+		Pegawai_mobile pegawai = new Pegawai_mobile();
+		
+		List<Map<String, Object>> pmRows = jdbcTemplate.queryForList(query);
+		
+		for (Map<String, Object> pmRow : pmRows){
+			pegawai.setId_pegawai(Integer.parseInt(String.valueOf(pmRow.get("id_pegawai"))));
+			pegawai.setNama(String.valueOf(pmRow.get("nama")));
+			pegawai.setGelar_depan(String.valueOf(pmRow.get("gelar_depan")));
+			pegawai.setGelar_belakang(String.valueOf(pmRow.get("gelar_belakang")));
+			
+			if(Integer.parseInt(String.valueOf(pmRow.get("jenis_kelamin"))) == 1){
+				jenkel = "Laki-laki";
+			}
+			else{
+				jenkel = "Perempuan";
+			}
+			
+			pegawai.setJenis_kelamin(String.valueOf(jenkel));
+			pegawai.setGol_darah(String.valueOf(pmRow.get("gol_darah")));
+			pegawai.setAgama(String.valueOf(pmRow.get("agama")));
+			pegawai.setTempat_lahir(String.valueOf(pmRow.get("tempat_lahir")));
+			pegawai.setTgl_lahir(String.valueOf(pmRow.get("tgl_lahir")));
+			pegawai.setAlamat(String.valueOf(pmRow.get("alamat")));
+			pegawai.setNip_baru(String.valueOf(pmRow.get("nip_baru")));
+			pegawai.setNo_karpeg(String.valueOf(pmRow.get("no_karpeg")));
+			pegawai.setMasa_kerja_pasif(Integer.parseInt(String.valueOf(pmRow.get("masa_kerja_pasif"))));
+			pegawai.setPangkat_gol(String.valueOf(pmRow.get("pangkat_gol")));
+			pegawai.setJenjab(String.valueOf(pmRow.get("jenjab")));
+			pegawai.setJabatan(String.valueOf(pmRow.get("jabatan")));
+			pegawai.setEseloning(String.valueOf(pmRow.get("eselonering")));
+			pegawai.setTgl_pensiun_dini_old(String.valueOf(pmRow.get("tgl_pensiun_dini_old")));
+			pegawai.setTgl_pensiun_dini(String.valueOf(pmRow.get("tgl_pensiun_dini")));
+			pegawai.setImei(String.valueOf(pmRow.get("imei")));
+			pegawai.setUnit_kerja(String.valueOf(pmRow.get("nama_baru")));
+			pegawai.setPassword(String.valueOf(pmRow.get("password")));
+			
+			pmList.add(pegawai);
+		}
+		
+		if(nip.equals(pegawai.getNip_baru())){
+			if(password.equals(pegawai.getPassword())){
+				//if imei gak sama update
+			}
+			else{
+				pmList.clear();
+			}
+		}
+		else{
+			pmList.clear();
+		}
+		return pmList;
+	}
+}

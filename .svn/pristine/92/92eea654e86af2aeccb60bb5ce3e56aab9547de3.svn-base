@@ -1,0 +1,99 @@
+package api.simpeg.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import api.simpeg.model.Pegawai;
+
+@Repository
+public class PegawaiDAOJDBCTemplateImpl implements PegawaiDAO{
+	private DataSource dataSaource;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSaource = dataSource;
+	}
+	
+	@Override
+	public List<Pegawai> find_all(){
+		String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja";
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSaource);
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		
+		List<Map<String, Object>> pgwRows = jdbcTemplate.queryForList(query);
+		
+		for (Map<String, Object> pgwRow : pgwRows){
+			Pegawai pgw = new Pegawai();
+			pgw.setId(Integer.parseInt(String.valueOf(pgwRow.get("id_pegawai"))));
+			pgw.setNama(String.valueOf(pgwRow.get("nama")));
+			pgw.setNip(String.valueOf(pgwRow.get("nip_baru")));
+			pgw.setUnit_kerja(String.valueOf(pgwRow.get("nama_baru")));
+			pgwList.add(pgw);
+		}
+		return pgwList;
+	}
+	
+	@Override
+	public List<Pegawai> find_by_nama(String nama){
+		String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nama='"+nama+"'";
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSaource);
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		
+		List<Map<String, Object>> pgwRows = jdbcTemplate.queryForList(query);
+		
+		for (Map<String, Object> pgwRow : pgwRows){
+			Pegawai pgw = new Pegawai();
+			pgw.setId(Integer.parseInt(String.valueOf(pgwRow.get("id_pegawai"))));
+			pgw.setNama(String.valueOf(pgwRow.get("nama")));
+			pgw.setNip(String.valueOf(pgwRow.get("nip_baru")));
+			pgw.setUnit_kerja(String.valueOf(pgwRow.get("nama_baru")));
+			pgwList.add(pgw);
+		}
+		return pgwList;
+	}
+	
+	@Override
+	public Pegawai find_by_nip(String nip){
+		String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nip_baru='"+nip+"'";
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSaource);
+		Pegawai pegawai = new Pegawai();
+		
+		List<Map<String, Object>> pgwRows = jdbcTemplate.queryForList(query);
+		
+		for (Map<String, Object> pgwRow : pgwRows){
+			Pegawai pgw = new Pegawai();
+			pgw.setId(Integer.parseInt(String.valueOf(pgwRow.get("id_pegawai"))));
+			pgw.setNama(String.valueOf(pgwRow.get("nama")));
+			pgw.setNip(String.valueOf(pgwRow.get("nip_baru")));
+			pgw.setUnit_kerja(String.valueOf(pgwRow.get("nama_baru")));
+			pegawai = pgw;
+		}
+		return pegawai;
+	}
+	
+	@Override
+	public List<Pegawai> find_by_unit_kerja(String unit_kerja){
+		String query = "SELECT p.id_pegawai, p.nama, p.nip_baru, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE nama_baru='"+unit_kerja+"'";
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSaource);
+		List<Pegawai> pgwList = new ArrayList<Pegawai>();
+		
+		List<Map<String, Object>> pgwRows = jdbcTemplate.queryForList(query);
+		
+		for (Map<String, Object> pgwRow : pgwRows){
+			Pegawai pgw = new Pegawai();
+			pgw.setId(Integer.parseInt(String.valueOf(pgwRow.get("id_pegawai"))));
+			pgw.setNama(String.valueOf(pgwRow.get("nama")));
+			pgw.setNip(String.valueOf(pgwRow.get("nip_baru")));
+			pgw.setUnit_kerja(String.valueOf(pgwRow.get("nama_baru")));
+			pgwList.add(pgw);
+		}
+		return pgwList;
+	}
+}

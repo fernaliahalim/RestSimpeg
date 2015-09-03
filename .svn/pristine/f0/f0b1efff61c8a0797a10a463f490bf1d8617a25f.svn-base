@@ -1,0 +1,56 @@
+package api.simpeg.model;
+
+public class Unit_kerja{
+	private int id_unit_kerja;
+	private String nama_baru;
+	private String alamat;
+	private String telp;
+	private int id_skpd;
+	
+	//atribut for error handling
+	private String error;
+	
+	public int getId_unit_kerja() {
+		return id_unit_kerja;
+	}
+	public void setId_unit_kerja(int id_unit_kerja) {
+		this.id_unit_kerja = id_unit_kerja;
+	}
+	public String getNama_baru() {
+		return nama_baru;
+	}
+	public void setNama_baru(String nama_baru) {
+		this.nama_baru = nama_baru;
+	}
+	public String getAlamat() {
+		return alamat;
+	}
+	public void setAlamat(String alamat) {
+		this.alamat = alamat;
+	}
+	public String getTelp() {
+		return telp;
+	}
+	public void setTelp(String telp) {
+		this.telp = telp;
+	}
+	public int getId_skpd() {
+		return id_skpd;
+	}
+	public void setId_skpd(int id_skpd) {
+		this.id_skpd = id_skpd;
+	}
+	
+	//method for error handling
+	public String getError() {
+		return error;
+	}
+	public void setError(String error) {
+		this.error = error;
+	}
+	
+	@Override
+	public String toString(){
+		return "{id=" + id_unit_kerja + ", unit_kerja=" + nama_baru + ", alamat =" + alamat + ", telp=" + telp + ", id_skpd=" + id_skpd + ", error=" + error + "}";
+	}
+}

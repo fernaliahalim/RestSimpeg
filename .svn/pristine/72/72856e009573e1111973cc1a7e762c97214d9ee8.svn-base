@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+ 
+    <bean id="pegawaiDAO" class="api.simpeg.dao.PegawaiDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="absensiDAO" class="api.simpeg.dao.AbsensiDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="pegawaiMobileDAO" class="api.simpeg.dao.PegawaiMobileDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="unitKerjaDAO" class="api.simpeg.dao.UnitKerjaDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="absensiMobileDAO" class="api.simpeg.dao.AbsensiMobileDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="kgbDAO" class="api.simpeg.dao.KgbDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="postDAO" class="api.simpeg.dao.PostDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="logAPIDAO" class="api.simpeg.simpeg_api.dao.LogAPIDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource2" />
+    </bean>
+    
+    <bean id="methodAPIDAO" class="api.simpeg.simpeg_api.dao.MethodAPIDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource2" />
+    </bean>
+     
+    <bean id="aplikasiAPIDAO" class="api.simpeg.simpeg_api.dao.AplikasiAPIDAOJDBCTempaletImpl">
+        <property name="dataSource" ref="dataSource2" />
+    </bean>
+    
+    <bean id="apiAksesDAO" class="api.simpeg.simpeg_api.dao.ApiAksesDAOJDBCTemplateImpl">
+        <property name="dataSource" ref="dataSource2" />
+    </bean>
+     
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate"> 
+   		<property name="dataSource" ref="dataSource"/> 
+    </bean>
+     
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://localhost:3306/simpeg" />
+        <property name="username" value="root" />
+        <property name="password" value="" />
+    </bean>
+    
+    <bean id="dataSource2" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://localhost:3306/simpeg_api" />
+        <property name="username" value="root" />
+        <property name="password" value="" />
+    </bean>
+</beans>

@@ -1,0 +1,11 @@
+package api.simpeg.dao;
+
+import java.util.List;
+
+import api.simpeg.model.Statistik;
+
+public interface StatistikDAO{
+	
+	public List<Statistik> getStatisticBidangPendidikan(String api_key);
+	
+}

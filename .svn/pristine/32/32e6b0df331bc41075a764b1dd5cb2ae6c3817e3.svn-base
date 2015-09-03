@@ -1,0 +1,75 @@
+package api.simpeg.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import api.simpeg.model.Absensi_mobile;
+import api.simpeg.simpeg_api.dao.ApiAksesDAO;
+import api.simpeg.simpeg_api.dao.AplikasiAPIDAO;
+import api.simpeg.simpeg_api.dao.LogAPIDAO;
+import api.simpeg.simpeg_api.dao.MethodAPIDAO;
+import api.simpeg.simpeg_api.model.Api_akses;
+import api.simpeg.simpeg_api.model.Aplikasi_api;
+
+@Repository
+public class AbsensiMobileDAOJDBCTemplateImpl implements AbsensiMobileDAO{
+	private DataSource dataSource;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+	}
+	
+	@Override
+	public int tambah(String id_pegawai, String stts, String long_lat, String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        ApiAksesDAO apiDAO = ctx.getBean("apiAksesDAO", ApiAksesDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		int id_api_akses;
+		int id_app;
+		String nama_method = "absensi_mobile/tambah()";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		Api_akses app_akses = new Api_akses();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		app_akses = apiDAO.get_by_method(id_method);
+		id_api_akses = app_akses.getId();
+		id_app = app_akses.getId_aplikasi();
+		
+		//atribut untuk menambahkan absensi
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		int status = 0;
+		
+		if(id_app == id_aplikasi){
+			if(api_key.equals(api_keydb)){
+				//menambahkan data log_api
+				logDAO.tambah(id_aplikasi, id_method);
+				
+				String query = "INSERT INTO oasys_attendance_log(id_pegawai,date_time,status,long_lat) VALUES ('" + id_pegawai + "',now(),'" + stts + "','" + long_lat + "')";
+				
+				status = jdbcTemplate.update(query);
+			}
+		}
+			return status;
+	}
+}

@@ -1,0 +1,349 @@
+package api.simpeg.dao;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.RowCountCallbackHandler;
+import org.springframework.stereotype.Repository;
+
+import scala.annotation.meta.getter;
+import api.simpeg.model.Absensi_mobile;
+import api.simpeg.model.Pegawai_mobile;
+import api.simpeg.model.Unit_kerja;
+import api.simpeg.simpeg_api.dao.ApiAksesDAO;
+import api.simpeg.simpeg_api.dao.AplikasiAPIDAO;
+import api.simpeg.simpeg_api.dao.LogAPIDAO;
+import api.simpeg.simpeg_api.dao.MethodAPIDAO;
+import api.simpeg.simpeg_api.model.Api_akses;
+import api.simpeg.simpeg_api.model.Aplikasi_api;
+
+@Repository
+public class AbsensiMobileDAOJDBCTemplateImpl implements AbsensiMobileDAO{
+	private DataSource dataSource;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+	}
+	
+	@Override
+	public String hadir(String id_pegawai, String nip, String password, String x, String y, String imei, String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        ApiAksesDAO apiDAO = ctx.getBean("apiAksesDAO", ApiAksesDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		int id_app;
+		String nama_method = "absensi_mobile/hadir";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		Api_akses app_akses = new Api_akses();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		app_akses = apiDAO.get_by_method(id_method);
+		id_app = app_akses.getId_aplikasi();
+		
+		//atribut untuk menambahkan absensi
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		int status = 0;
+		int status_query = 0;
+		String latitude = null;
+		String longitude = null;
+		String imei_db = null;
+		UnitKerjaDAO ukDAO = ctx.getBean("unitKerjaDAO", UnitKerjaDAO.class);
+		PegawaiMobileDAO pmDAO = ctx.getBean("pegawaiMobileDAO", PegawaiMobileDAO.class);
+		Unit_kerja uk = new Unit_kerja();
+		Pegawai_mobile pm = new Pegawai_mobile();
+		uk = ukDAO.get_location_uk(id_pegawai);
+		pm = pmDAO.get_imei(id_pegawai);
+		latitude = String.valueOf(uk.getLatitude());
+		longitude = String.valueOf(uk.getLongitude());
+		imei_db = pm.getImei();
+		Absensi_mobile am = new Absensi_mobile();
+		
+		//cek nip
+		PegawaiMobileDAO ogwDAO = ctx.getBean("pegawaiMobileDAO", PegawaiMobileDAO.class);
+		String nip_pgw = null;
+		nip_pgw = ogwDAO.cek_nip(nip);
+		Pegawai_mobile pegawai = new Pegawai_mobile();
+		
+		if(id_app == id_aplikasi){
+			if(api_key.equals(api_keydb)){
+				if(nip.equals(nip_pgw)){
+					List<Map<String, Object>> pmRows = jdbcTemplate.queryForList("SELECT p.id_pegawai, p.nama, p.gelar_depan, p.gelar_belakang, p.jenis_kelamin, p.gol_darah, p.agama, p.tempat_lahir, p.tgl_lahir, p.alamat, p.nip_baru, p.no_karpeg, p.masa_kerja_pasif, p.pangkat_gol, p.jenjab, p.jabatan, p.eselonering, p.tgl_pensiun_dini_old, p.tgl_pensiun_dini, p.imei, p.flag_pensiun, p.password, c.id_unit_kerja, u.nama_baru FROM (pegawai as p INNER JOIN current_lokasi_kerja as c on p.id_pegawai = c.id_pegawai) INNER JOIN unit_kerja as u on c.id_unit_kerja = u.id_unit_kerja WHERE p.flag_pensiun=0 AND p.nip_baru=? AND p.password=?", nip, password);
+					
+					for (Map<String, Object> pmRow : pmRows){
+						pegawai.setId_pegawai(Integer.parseInt(String.valueOf(pmRow.get("id_pegawai"))));
+						pegawai.setPassword(String.valueOf(pmRow.get("password")));
+					}
+					
+					if(password.equals(pegawai.getPassword())){
+						//menambahkan data log_api
+						logDAO.tambah(id_aplikasi, id_method);
+						
+						String stts;
+						int now_db = 0;
+						int min_db = 0;
+						int sec_db = 0;
+						String day_db = null;
+						int absensi_riwayat = 0;
+						String imei_dbb = null;
+						
+						List<Map<String, Object>> now = jdbcTemplate.queryForList("SELECT TIME(now()) as now");
+						
+						for (Map<String, Object> nows : now){
+							now_db = Integer.parseInt(String.valueOf(nows.get("now")).substring(0, 2));
+							min_db = Integer.parseInt(String.valueOf(nows.get("now")).substring(3, 5));
+							sec_db = Integer.parseInt(String.valueOf(nows.get("now")).substring(6, 8));
+						}
+						
+						now_db = 7 - now_db;
+						min_db = 40 - min_db;
+						sec_db = 0 - sec_db;
+						
+						if(now_db > 0){
+							stts = "PRESENT";
+							status = 100;
+						}
+						else if(now_db == 0){
+							if(min_db >= 0){
+								if(sec_db >= 0){
+									stts = "PRESENT";
+									status = 100;
+								}
+								else{
+									stts = "LATE";
+									status = 107;
+								}
+							}
+							else{
+								stts = "LATE";
+								status = 107;
+							}
+						}
+						else{
+							stts = "LATE";
+							status = 107;
+						}
+					
+						List<Map<String, Object>> cek_input = jdbcTemplate.queryForList("SELECT * FROM oasys_attendance_log WHERE id_pegawai=? AND date_time LIKE CONCAT(DATE(now()),'%')", id_pegawai);
+						
+						for (Map<String, Object> cek : cek_input){
+							absensi_riwayat = Integer.parseInt(String.valueOf(cek.get("id")));
+						}
+						
+						System.out.print(absensi_riwayat);
+						
+						List<Map<String, Object>> day = jdbcTemplate.queryForList("SELECT DAYNAME(now()) as hari_ini");
+						
+						for (Map<String, Object> days : day){
+							day_db = String.valueOf(days.get("hari_ini"));
+						}
+						
+						//cek hari
+						
+						if(day_db.equals("Saturday") || day_db.equals("Sunday")){
+							status = 108;
+						}
+						else{
+							//cek riwayat
+							if(absensi_riwayat == 0){
+								//cek lokasi
+								//if(latitude.equals(x) || longitude.equals(y)){
+										//cek imei
+										if(imei_db.equals(imei)){
+											status_query = jdbcTemplate.update("INSERT INTO oasys_attendance_log(id_pegawai,date_time,status,latitude,longitude) VALUES (?,now(),?,?,?)", id_pegawai,stts,x,y);
+										
+											if(status_query == 1 && status == 100){
+												status = 100;
+												am.setRequest_status(status);
+											}
+											else if(status_query == 1 && status == 107){
+												status = 107;
+												am.setRequest_status(status);
+											}
+											else{
+												status = 104;
+												am.setRequest_status(status);
+											}
+										}
+										else{
+											status = 106;
+											am.setRequest_status(status);
+										}
+								//}
+								//else{
+									//status = 105;
+									//am.setRequest_status(status);
+								//}
+							}
+							else{
+								status = 109;
+								am.setRequest_status(status);
+							}
+						}
+					}
+					else{
+						status = 103;
+						am.setRequest_status(status);
+					}
+				}
+				else{
+					status = 102;
+					am.setRequest_status(status);
+				}
+			}
+			else{
+				status = 101;
+				am.setRequest_status(status);
+			}
+		}
+		else{
+			status = 101;
+			am.setRequest_status(status);
+		}
+			
+			return am.ReqtoString();
+	}
+	
+	@Override
+	public String tidak_hadir(String id_pegawai, String stts, String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        ApiAksesDAO apiDAO = ctx.getBean("apiAksesDAO", ApiAksesDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		int id_app;
+		String nama_method = "absensi_mobile/tidak_hadir";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		Api_akses app_akses = new Api_akses();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		app_akses = apiDAO.get_by_method(id_method);
+		id_app = app_akses.getId_aplikasi();
+		
+		//atribut untuk menambahkan absensi
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		int status = 0;
+		Absensi_mobile abs_mobile = new Absensi_mobile();
+		
+		if(id_app == id_aplikasi){
+			if(api_key.equals(api_keydb)){
+				//menambahkan data log_api
+				logDAO.tambah(id_aplikasi, id_method);
+				
+				//String query = "INSERT INTO oasys_absent_reason_log(id_pegawai,date_time,status) VALUES ('" + id_pegawai + "',now(),'" + stts + "')";
+				
+				status = jdbcTemplate.update("INSERT INTO oasys_absent_reason_log(id_pegawai,date_time,status) VALUES (?,now(),?)", id_pegawai, stts);
+				
+				if(status == 1){
+					status = 100;
+					abs_mobile.setRequest_status(status);
+				}
+				else{
+					status = 104;
+					abs_mobile.setRequest_status(status);
+				}
+			
+			}
+			else{
+				status = 101;
+				abs_mobile.setRequest_status(status);
+			}
+		}
+		else{
+			status = 101;
+			abs_mobile.setRequest_status(status);
+		}
+		
+		return abs_mobile.ReqtoString();
+	}
+	
+	public List<Absensi_mobile> get_attendance(String id_pegawai, String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        ApiAksesDAO apiDAO = ctx.getBean("apiAksesDAO", ApiAksesDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		int id_app;
+		String nama_method = "absensi_mobile/get_attendance";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		Api_akses app_akses = new Api_akses();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		app_akses = apiDAO.get_by_method(id_method);
+		id_app = app_akses.getId_aplikasi();
+		
+		//atribut untuk menampilkan data absensi
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		List<Absensi_mobile> absList = new ArrayList<Absensi_mobile>();
+		Absensi_mobile abs_error = new Absensi_mobile();
+		
+		if(id_app == id_aplikasi){
+			if(api_key.equals(api_keydb)){
+				//menambahkan data log_api
+				logDAO.tambah(id_aplikasi, id_method);
+				
+				List<Map<String, Object>> absRows = jdbcTemplate.queryForList("SELECT * FROM `oasys_attendance_log` WHERE month(date_time) = month(now()) AND id_pegawai=?", id_pegawai);
+				
+				for (Map<String, Object> absRow : absRows){
+					Absensi_mobile abs = new Absensi_mobile();
+					abs.setId(Integer.parseInt(String.valueOf(absRow.get("id"))));
+					abs.setId_pegawai(Integer.parseInt(String.valueOf(absRow.get("id_pegawai"))));
+					abs.setDate_time(String.valueOf(absRow.get("date_time")));
+					abs.setStatus(String.valueOf(absRow.get("status")));
+					abs.setLong_lat(String.valueOf(absRow.get("long_lat")));
+					absList.add(abs);
+				}
+			}
+			else{
+				abs_error.setRequest_status(101);
+				absList.add(abs_error);
+			}
+		}
+		else{
+			abs_error.setRequest_status(101);
+			absList.add(abs_error);
+		}
+		return absList;
+	}
+}

@@ -1,0 +1,80 @@
+package api.simpeg.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import api.simpeg.model.Kgb;
+import api.simpeg.model.Unit_kerja;
+import api.simpeg.simpeg_api.dao.AplikasiAPIDAO;
+import api.simpeg.simpeg_api.dao.LogAPIDAO;
+import api.simpeg.simpeg_api.dao.MethodAPIDAO;
+import api.simpeg.simpeg_api.model.Aplikasi_api;
+
+@Repository
+public class KgbDAOJDBCTemplateImpl implements KgbDAO{
+	private DataSource dataSource;
+	
+	@Autowired
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+	}
+	
+	@Override
+	public List<Kgb> get_all(String thn, String bln, String api_key){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+        MethodAPIDAO methodDAO = ctx.getBean("methodAPIDAO", MethodAPIDAO.class);
+        AplikasiAPIDAO aplikasiDAO = ctx.getBean("aplikasiAPIDAO", AplikasiAPIDAO.class);
+        LogAPIDAO logDAO = ctx.getBean("logAPIDAO", LogAPIDAO.class);
+        
+        //atribut untuk mengambil data aplikasi dan method
+		int id_method;
+		String api_keydb;
+		int id_aplikasi;
+		String nama_method = "kgb/get_all()";
+		Aplikasi_api aplikasi_api = new Aplikasi_api();
+		
+		aplikasi_api = aplikasiDAO.get_aplikasi_detail(api_key);
+		id_aplikasi = aplikasi_api.getId_aplikasi();
+		api_keydb = aplikasi_api.getApi_key(); 
+		
+		id_method = methodDAO.get_id(nama_method);
+		
+		//atribut untuk menampilkan data pegawai
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		List<Kgb> kgbList = new ArrayList<Kgb>();
+		int tahun = Integer.parseInt(thn);
+		int bulan = Integer.parseInt(bln);
+		
+		if(api_key.equals(api_keydb)){
+			//menambahkan data log_api
+			logDAO.tambah(id_aplikasi, id_method);
+			
+			String query = "SELECT p.NAMA, p.nip_baru as NIP, p.pangkat_gol as GOLONGAN, x.tmt as TMT_KGB_TERAKHIR, v.golongan as gol_cpns, u.nama_baru as UNIT_KERJA, x.no_sk, x.tgl_sk as tgl_sk FROM `view_kgb_pertama` v inner join pegawai p on p.id_pegawai = v.id_pegawai inner join current_lokasi_kerja c on c.id_pegawai = p.id_pegawai inner join unit_kerja u on u.id_unit_kerja = c.id_unit_kerja left join (select s.id_pegawai, max(s.tmt) as tmt, s.no_sk, s.id_kategori_sk, max(s.tgl_sk) as tgl_sk from sk s inner join (select id_pegawai, max(tmt) as tmt, id_kategori_sk, no_sk, id_sk from sk where " + tahun +"-year(tmt)<=4 AND id_kategori_sk in (7,5,9) group by id_pegawai, id_kategori_sk ORDER BY `sk`.`id_pegawai` ASC)as x on x.id_pegawai = s.id_pegawai group by s.id_pegawai) as x on x.id_pegawai = p.id_pegawai where p.flag_pensiun = 0 AND (" + tahun +"-LEFT(kgb_pertama,4))%2 = 0 AND MONTH(kgb_pertama) = " + bulan +" ORDER BY nama_baru ASC, pangkat_gol DESC";
+			
+			List<Map<String, Object>> kgbRows = jdbcTemplate.queryForList(query);
+			int i = 0;
+			
+			for (Map<String, Object> kgbRow : kgbRows){
+				Kgb kgb = new Kgb();
+				kgb.setId(i++);
+				kgb.setNama(String.valueOf(kgbRow.get("NAMA")));
+				kgb.setNip(String.valueOf(kgbRow.get("NIP")));
+				kgb.setGolongan(String.valueOf(kgbRow.get("GOLONGAN")));
+				kgb.setTmt_sebelumnya(String.valueOf(kgbRow.get("TMT_KGB_TERAKHIR")));
+				kgb.setUnit_kerja(String.valueOf(kgbRow.get("UNIT_KERJA")));
+				kgbList.add(kgb);
+			}
+		}
+		
+		return kgbList;
+	}
+}
